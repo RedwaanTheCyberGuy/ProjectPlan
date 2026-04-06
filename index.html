@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberAIStep — Daily Dashboard</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #232733;
+  --border: #2d3140;
+  --text: #e8e9ed;
+  --text2: #9ca0ad;
+  --text3: #6b7080;
+  --accent: #3b82f6;
+  --accent-dim: #1e3a5f;
+  --green: #22c55e;
+  --green-dim: #14532d;
+  --orange: #f59e0b;
+  --orange-dim: #78350f;
+  --red: #ef4444;
+  --red-dim: #7f1d1d;
+  --purple: #a855f7;
+  --purple-dim: #3b0764;
+  --cyan: #06b6d4;
+  --cyan-dim: #083344;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding: 16px; max-width: 800px; margin: 0 auto; }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab { background: none; border: none; color: var(--text2); padding: 10px 16px; cursor: pointer; font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--text); }
+.tab-badge { background: var(--red); color: white; font-size: 0.6rem; padding: 1px 5px; border-radius: 8px; margin-left: 4px; font-weight: 700; }
+
+/* FOCUS VIEW */
+.focus-header { text-align: center; margin-bottom: 24px; }
+.focus-date { color: var(--text2); font-size: 0.85rem; }
+.focus-title { font-size: 1.4rem; font-weight: 700; margin: 4px 0; }
+.focus-subtitle { color: var(--text2); font-size: 0.85rem; }
+
+.streak-bar { display: flex; justify-content: center; gap: 20px; margin-bottom: 24px; }
+.streak-item { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; }
+.streak-num { font-size: 1.5rem; font-weight: 700; }
+.streak-label { font-size: 0.65rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.streak-fire { color: var(--orange); }
+.streak-total { color: var(--green); }
+.streak-week { color: var(--accent); }
+
+.needle-question { background: linear-gradient(135deg, var(--accent-dim), var(--purple-dim)); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 24px; font-size: 0.9rem; }
+.needle-question strong { color: var(--orange); }
+
+.today-section { margin-bottom: 24px; }
+.today-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.today-label .count { background: var(--accent-dim); color: var(--accent); padding: 1px 7px; border-radius: 8px; font-size: 0.7rem; }
+
+.focus-task { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.2s; }
+.focus-task:hover { border-color: var(--accent); }
+.focus-task.completed { opacity: 0.5; }
+
+.ft-check { width: 24px; height: 24px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.ft-check:hover { border-color: var(--green); }
+.ft-check.done { background: var(--green); border-color: var(--green); }
+.ft-check.done::after { content: '\2713'; color: white; font-size: 13px; font-weight: 700; }
+
+.ft-content { flex: 1; }
+.ft-name { font-size: 0.95rem; font-weight: 600; }
+.ft-name.done { text-decoration: line-through; color: var(--text2); }
+.ft-detail { font-size: 0.78rem; color: var(--text2); margin-top: 3px; }
+.ft-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+.impact-tag { font-size: 0.62rem; padding: 2px 7px; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.impact-students { background: var(--green-dim); color: var(--green); }
+.impact-quality { background: var(--accent-dim); color: var(--accent); }
+.impact-scale { background: var(--cyan-dim); color: var(--cyan); }
+.impact-protect { background: var(--red-dim); color: var(--red); }
+.impact-ws { background: var(--surface2); color: var(--text2); }
+
+.all-done-msg { text-align: center; padding: 40px 20px; background: var(--surface); border: 1px solid var(--green-dim); border-radius: 12px; margin-bottom: 20px; }
+.all-done-msg .emoji { font-size: 2.5rem; margin-bottom: 8px; }
+.all-done-msg .title { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+.all-done-msg .sub { color: var(--text2); font-size: 0.85rem; margin-top: 4px; }
+
+/* FULL PLAN VIEW */
+.ws-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.ws-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; }
+.ws-head:hover { background: var(--surface2); }
+.ws-left { display: flex; align-items: center; gap: 10px; }
+.ws-icon { font-size: 1.1rem; }
+.ws-title { font-weight: 600; font-size: 0.92rem; }
+.ws-right { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text2); }
+.pbar { width: 60px; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.pfill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.chev { transition: transform 0.2s; color: var(--text2); font-size: 0.7rem; }
+.chev.open { transform: rotate(90deg); }
+.ws-body { padding: 0 16px 12px; }
+.phase-hdr { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); padding: 10px 0 4px; border-bottom: 1px dashed var(--border); font-weight: 600; }
+.task-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.task-row:last-child { border-bottom: none; }
+.t-check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.t-check:hover { border-color: var(--accent); }
+.t-check.done { background: var(--green); border-color: var(--green); }
+.t-check.done::after { content: '\2713'; color: white; font-size: 10px; font-weight: 700; }
+.t-content { flex: 1; }
+.t-name { font-size: 0.85rem; }
+.t-name.done { text-decoration: line-through; color: var(--text2); }
+.t-detail { font-size: 0.73rem; color: var(--text2); margin-top: 2px; }
+.t-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.tag { font-size: 0.6rem; padding: 1px 6px; border-radius: 8px; font-weight: 600; text-transform: uppercase; }
+.tag-urgent { background: var(--red-dim); color: var(--red); }
+.tag-this-week { background: var(--orange-dim); color: var(--orange); }
+.tag-next-week { background: var(--accent-dim); color: var(--accent); }
+.tag-ongoing { background: var(--purple-dim); color: var(--purple); }
+.tag-done { background: var(--green-dim); color: var(--green); }
+.tag-blind-spot { background: #4a1942; color: #e879f9; }
+.tag-red-flag { background: var(--red-dim); color: #fca5a5; border: 1px solid var(--red); }
+.tag-scale { background: var(--cyan-dim); color: var(--cyan); }
+.tag-month-2 { background: #1a2332; color: #60a5fa; }
+.tag-month-3 { background: #1a2332; color: #818cf8; }
+.tag-q3 { background: #1a1a2e; color: #c084fc; }
+
+/* PARKING LOT */
+.parking-lot { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.pl-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+.pl-subtitle { font-size: 0.78rem; color: var(--text2); margin-bottom: 14px; }
+.pl-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.pl-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
+.pl-input:focus { border-color: var(--accent); }
+.pl-input::placeholder { color: var(--text3); }
+.pl-add-btn { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.pl-add-btn:hover { background: var(--accent); color: white; }
+.pl-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.pl-item:last-child { border-bottom: none; }
+.pl-remove { color: var(--text3); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; }
+.pl-remove:hover { color: var(--red); background: var(--red-dim); }
+.pl-empty { color: var(--text3); font-size: 0.8rem; font-style: italic; padding: 8px 0; }
+.pl-date { color: var(--text3); font-size: 0.7rem; margin-left: auto; }
+
+.hidden { display: none; }
+
+/* FILTER BAR */
+.filter-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.fbtn { background: var(--surface); border: 1px solid var(--border); color: var(--text2); padding: 4px 10px; border-radius: 16px; cursor: pointer; font-size: 0.72rem; }
+.fbtn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 600px) {
+  .streak-bar { gap: 8px; }
+  .streak-item { padding: 10px 14px; }
+  body { padding: 10px; }
+  .tabs { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="tabs" id="tabs"></div>
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// TASK DATA — each task has an impact tag showing WHY it matters
+// ═══════════════════════════════════════════════════════════════
+const TASKS = [
+  // COMPLIANCE
+  { id:'c5', ws:'compliance', name:'Enhanced DBS check acquired', detail:'', phase:'done', done:true, tags:['done'], impact:['protect'], pri:0 },
+  { id:'c6', ws:'compliance', name:'DBS checker paid with gov', detail:'', phase:'done', done:true, tags:['done'], impact:['protect'], pri:0 },
+  { id:'c1', ws:'compliance', name:'Complete Safeguarding Level 2 (Caredemy)', detail:'caredemy.co.uk \u2014 1-2 hours, instant certificate. Cannot work with children unsupervised without this.', phase:'now', done:false, tags:['urgent','red-flag'], impact:['protect'], pri:100 },
+  { id:'c3', ws:'compliance', name:'Obtain Public Liability Insurance (\u00A35M+)', detail:'Compare: Hiscox, PolicyBee, Simply Business. Venues and schools require proof.', phase:'now', done:false, tags:['urgent','red-flag'], impact:['protect','scale'], pri:99 },
+  { id:'c4', ws:'compliance', name:'Register for DBS Update Service (\u00A313/yr)', detail:'Must register within 30 days of DBS issue. Schools verify instantly. Critical for B2B.', phase:'now', done:false, tags:['urgent'], impact:['protect','scale'], pri:98 },
+  { id:'c2', ws:'compliance', name:'Apply for ASF-funded Safeguarding L2 (regulated)', detail:'freecoursesinengland.co.uk \u2014 TQUK/NCFE, 6-12 weeks. Run in parallel with Caredemy.', phase:'now', done:false, tags:['this-week'], impact:['protect'], pri:80 },
+  { id:'c7', ws:'compliance', name:'Write full compliance pack (8 documents)', detail:'Safeguarding policy, risk assessments, fire procedures, first aid, data protection, complaints, code of conduct, anti-bullying.', phase:'now', done:false, tags:['this-week'], impact:['protect','scale'], pri:85 },
+  { id:'c10', ws:'compliance', name:'Add privacy policy to cyberaistep.com', detail:'Your website collects visitor data. Simple GDPR page. ClassForKids covers booking data separately.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['protect'], pri:70 },
+  { id:'c15', ws:'compliance', name:'Add terms & conditions to website', detail:'Cancellation policy, liability limits, session terms.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['protect'], pri:68 },
+  { id:'c11', ws:'compliance', name:'Begin Cyber Essentials self-assessment', detail:'\u00A3320+VAT. Your IAM background makes this fast. Mandatory for gov contracts.', phase:'next', done:false, tags:['next-week'], impact:['scale'], pri:50 },
+  { id:'c12', ws:'compliance', name:'Submit Cyber Essentials certification', detail:'Badge for website, pitches, bids. Differentiator.', phase:'next', done:false, tags:['next-week'], impact:['scale'], pri:48 },
+  { id:'c13', ws:'compliance', name:'Get basic first aid certificate', detail:'1-day course, ~\u00A360-80. Strengthens school pitches.', phase:'next', done:false, tags:['next-week','blind-spot'], impact:['protect'], pri:40 },
+  { id:'c20', ws:'compliance', name:'Create TA/volunteer onboarding checklist', detail:'DBS, references, safeguarding, trial session, signed code of conduct.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:20 },
+  { id:'c21', ws:'compliance', name:'Diarise annual safeguarding policy review', detail:'Schools check review dates on policies.', phase:'scale', done:false, tags:['scale','month-3'], impact:['protect'], pri:15 },
+  { id:'c22', ws:'compliance', name:'Achieve Cyber Essentials Plus', detail:'External audit. For larger tenders.', phase:'scale', done:false, tags:['scale','q3'], impact:['scale'], pri:10 },
+
+  // CURRICULUM
+  { id:'cu1', ws:'curriculum', name:'Block 1 Wk1 \u2014 Password Generator', detail:'Passed self-audit.', phase:'done', done:true, tags:['done'], impact:['quality'], pri:0 },
+  { id:'cu2', ws:'curriculum', name:'Block 1 Wk2 \u2014 Number Guesser', detail:'Passed self-audit.', phase:'done', done:true, tags:['done'], impact:['quality'], pri:0 },
+  { id:'cu7', ws:'curriculum', name:'Session Run-Sheet created', detail:'', phase:'done', done:true, tags:['done'], impact:['quality'], pri:0 },
+  { id:'cu8', ws:'curriculum', name:'Taught first two weeks of Python Core', detail:'', phase:'done', done:true, tags:['done'], impact:['quality'], pri:0 },
+  { id:'cu3', ws:'curriculum', name:'Block 1 Wk3 \u2014 Countdown Timer', detail:'While loops, counters. Say NEXT WEEK in curriculum chat.', phase:'now', done:false, tags:['this-week'], impact:['quality'], pri:90 },
+  { id:'cu11', ws:'curriculum', name:'Create emergency/unplugged lesson plan', detail:'Printed backup for when tech fails. Pseudocode challenge or paper debugging.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['quality'], pri:65 },
+  { id:'cu4', ws:'curriculum', name:'Block 1 Wk4 \u2014 Squad Picker', detail:'For loops, random, lists.', phase:'next', done:false, tags:['next-week'], impact:['quality'], pri:55 },
+  { id:'cu5', ws:'curriculum', name:'Block 1 Wk5 \u2014 Escape Room', detail:'Functions, return values.', phase:'next', done:false, tags:['next-week'], impact:['quality'], pri:54 },
+  { id:'cu6', ws:'curriculum', name:'Block 1 Wk6 \u2014 Boss Battle Arena', detail:'Capstone. All concepts combined.', phase:'next', done:false, tags:['next-week'], impact:['quality'], pri:53 },
+  { id:'cu12', ws:'curriculum', name:'Build homework challenge websites', detail:'Interactive Silver \u2192 Gold unlock. Replicate Wk2 prompt pattern.', phase:'next', done:false, tags:['ongoing'], impact:['quality','students'], pri:45 },
+  { id:'cu22', ws:'curriculum', name:'Create student progression certificates', detail:'PDF per tier + per block. Parents print them. Kids earn them.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students','quality'], pri:30 },
+  { id:'cu23', ws:'curriculum', name:'Plan Demo Day (end-of-block showcase)', detail:'Parents attend. Students present. Film it. Massive retention + referral driver.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students','scale'], pri:32 },
+  { id:'cu9', ws:'curriculum', name:'Draft first case study from Block 1', detail:'Outcomes, parent quotes, progression. Essential for school pitches + grants.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:28 },
+  { id:'cu10', ws:'curriculum', name:'Confirm Block 2-6 project sequences', detail:'Lock project names before generation.', phase:'scale', done:false, tags:['scale','month-2'], impact:['quality'], pri:25 },
+  { id:'cu20', ws:'curriculum', name:'Generate Block 2 Guides (3D Game Engineering)', detail:'Sequential, one week at a time.', phase:'scale', done:false, tags:['scale','month-2'], impact:['quality'], pri:24 },
+  { id:'cu21', ws:'curriculum', name:'Generate Blocks 3-5 Guides', detail:'Web Dev, AI Builders, Cyber Security.', phase:'scale', done:false, tags:['scale','month-3'], impact:['quality'], pri:20 },
+  { id:'cu24', ws:'curriculum', name:'Design holiday camp format', detail:'3-5 day intensives. \u00A399-149. Working parents need holiday childcare.', phase:'scale', done:false, tags:['scale','q3'], impact:['students','scale'], pri:15 },
+  { id:'cu25', ws:'curriculum', name:'Student ambassador programme', detail:'Older students mentor younger. Community + less instructor load.', phase:'scale', done:false, tags:['scale','q3'], impact:['quality','scale'], pri:12 },
+  { id:'cu26', ws:'curriculum', name:'Build online resource hub', detail:'Concept cards, code refs, past projects. Reduces WhatsApp questions.', phase:'scale', done:false, tags:['scale','q3'], impact:['quality'], pri:10 },
+
+  // MARKETING
+  { id:'m1', ws:'marketing', name:'Facebook page live and posting', detail:'', phase:'done', done:true, tags:['done'], impact:['students'], pri:0 },
+  { id:'m2', ws:'marketing', name:'WhatsApp channel for parents', detail:'', phase:'done', done:true, tags:['done'], impact:['students'], pri:0 },
+  { id:'m3', ws:'marketing', name:'Ad strategy document created', detail:'', phase:'done', done:true, tags:['done'], impact:['students'], pri:0 },
+  { id:'m4', ws:'marketing', name:'Launch posts published', detail:'', phase:'done', done:true, tags:['done'], impact:['students'], pri:0 },
+  { id:'m5', ws:'marketing', name:'Competitor analysis completed', detail:'', phase:'done', done:true, tags:['done'], impact:['scale'], pri:0 },
+  { id:'m6', ws:'marketing', name:'Create free trial poster/graphics', detail:'CTA: "Book your free trial." Repurpose for WhatsApp + Instagram. Canva templates.', phase:'now', done:false, tags:['this-week'], impact:['students'], pri:88 },
+  { id:'m8', ws:'marketing', name:'Set up Google My Business', detail:'"Coding classes near me" = high-intent. Free listing with photos, reviews, booking link.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['students'], pri:86 },
+  { id:'m9', ws:'marketing', name:'Launch first paid Facebook ad', detail:'\u00A375/month. Free trial CTA. Parents 25-55, 5-mile radius.', phase:'now', done:false, tags:['this-week'], impact:['students'], pri:87 },
+  { id:'m10', ws:'marketing', name:'Create 3 ad creatives (phone-shot)', detail:'Project demo, "skills schools don\'t teach" carousel, talking-head from you.', phase:'now', done:false, tags:['this-week'], impact:['students'], pri:86 },
+  { id:'m7', ws:'marketing', name:'Set up Instagram account', detail:'Repurpose Facebook content. Link in bio \u2192 ClassForKids.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['students'], pri:75 },
+  { id:'m12', ws:'marketing', name:'Get first parent testimonial', detail:'2-sentence review or 15-sec video. Post on FB + Google My Business.', phase:'now', done:false, tags:['this-week'], impact:['students'], pri:78 },
+  { id:'m13', ws:'marketing', name:'Post 3x/week on Facebook', detail:'1 tip, 1 showcase, 1 CTA. Batch-create Sundays.', phase:'now', done:false, tags:['ongoing'], impact:['students'], pri:82 },
+  { id:'m14', ws:'marketing', name:'Optimise cyberaistep.com landing page', detail:'Clear headline, 3 benefits, social proof, single CTA, mobile-first, <3s load.', phase:'next', done:false, tags:['next-week'], impact:['students'], pri:60 },
+  { id:'m11', ws:'marketing', name:'Build referral programme', detail:'"Refer a friend, both get \u00A310 off." Print referral cards. Cheaper than ads.', phase:'next', done:false, tags:['next-week','blind-spot'], impact:['students'], pri:62 },
+  { id:'m15', ws:'marketing', name:'Create "what your child will build" video', detail:'Screen-record a finished project. 30 seconds. Parents need to SEE the output.', phase:'next', done:false, tags:['next-week'], impact:['students'], pri:58 },
+  { id:'m20', ws:'marketing', name:'Parent WhatsApp group per cohort', detail:'Actual group, not broadcast. Community + retention + word-of-mouth.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students'], pri:30 },
+  { id:'m21', ws:'marketing', name:'Facebook retargeting ads', detail:'After 100+ visitors: lookalike audiences, retarget non-bookers.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students'], pri:28 },
+  { id:'m22', ws:'marketing', name:'Partner with Leicester libraries', detail:'Free taster events. Zero cost, high-quality leads.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students'], pri:30 },
+  { id:'m23', ws:'marketing', name:'"Coding tip of the week" series', detail:'Short reels. Authority positioning. Organic reach.', phase:'scale', done:false, tags:['scale','ongoing'], impact:['students'], pri:22 },
+  { id:'m27', ws:'marketing', name:'Get featured in Leicester Mercury / BBC Radio', detail:'Local press love this story. Write press release, email education reporters.', phase:'scale', done:false, tags:['scale','month-2','blind-spot'], impact:['students','scale'], pri:26 },
+  { id:'m24', ws:'marketing', name:'Birthday party coding sessions', detail:'2-hour, 8-12 kids. \u00A3150-200. High margin.', phase:'scale', done:false, tags:['scale','q3'], impact:['students','scale'], pri:15 },
+  { id:'m25', ws:'marketing', name:'Enter local business awards', detail:'Leicester Mercury, FSB, East Midlands Chamber. Free PR.', phase:'scale', done:false, tags:['scale','q3'], impact:['scale'], pri:12 },
+  { id:'m26', ws:'marketing', name:'Build email list via lead magnet', detail:'Free Python guide PDF \u2192 email capture \u2192 nurture \u2192 convert. Own the audience.', phase:'scale', done:false, tags:['scale','month-3'], impact:['students'], pri:20 },
+  { id:'m28', ws:'marketing', name:'List on parent directories', detail:'Netmums, Hoop app, Leicester parent FB groups.', phase:'scale', done:false, tags:['scale','month-2','blind-spot'], impact:['students'], pri:24 },
+
+  // B2B
+  { id:'b1', ws:'b2b', name:'B2B Strategy v2 created', detail:'', phase:'done', done:true, tags:['done'], impact:['scale'], pri:0 },
+  { id:'b6', ws:'b2b', name:'Set up Find a Tender + Contracts Finder alerts', detail:'Education, STEM, youth services in East Midlands. 10-min setup.', phase:'now', done:false, tags:['this-week'], impact:['scale'], pri:72 },
+  { id:'b10', ws:'b2b', name:'Download CCS SME/VCSE bidding guide', detail:'Essential reading before any tender.', phase:'now', done:false, tags:['this-week'], impact:['scale'], pri:70 },
+  { id:'b2', ws:'b2b', name:'Create 1-page school pitch PDF', detail:'Offer, outcomes, pricing tiers, credentials, case study placeholder.', phase:'next', done:false, tags:['next-week'], impact:['scale','students'], pri:52 },
+  { id:'b4', ws:'b2b', name:'Free taster sessions at 3-5 schools', detail:'1-hour. Leave parent packs + referral cards.', phase:'next', done:false, tags:['next-week'], impact:['students','scale'], pri:50 },
+  { id:'b5', ws:'b2b', name:'Apply for YPPS Grant 2026-2029', detail:'Compliance pack must be ready first.', phase:'next', done:false, tags:['next-week'], impact:['scale'], pri:45 },
+  { id:'b7', ws:'b2b', name:'Register on STEM Learning Directory', detail:'Free. Live for September. Schools search here.', phase:'next', done:false, tags:['next-week'], impact:['scale'], pri:42 },
+  { id:'b9', ws:'b2b', name:'Research TechYouth East Midlands', detail:'Find a Tender status. Subcontracting opportunity.', phase:'next', done:false, tags:['next-week'], impact:['scale'], pri:38 },
+  { id:'b20', ws:'b2b', name:'Register as STEM Ambassador', detail:'Free. School networks, events, credibility.', phase:'scale', done:false, tags:['scale','month-2','blind-spot'], impact:['scale'], pri:28 },
+  { id:'b3', ws:'b2b', name:'Contact 5 MAT central offices', detail:'Email + one-pager. Smaller MATs first. Follow up in 5 days.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale','students'], pri:26 },
+  { id:'b8', ws:'b2b', name:'Contact BCS re: accredited centre', detail:'Enquire requirements + timeline.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:22 },
+  { id:'b11', ws:'b2b', name:'Apply for Lottery Awards for All (\u00A310k)', detail:'Fund equipment, venue, free places.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:25 },
+  { id:'b12', ws:'b2b', name:'Compile bid-ready evidence pack', detail:'Student numbers, completion, satisfaction. Collect from Block 1.', phase:'scale', done:false, tags:['scale','ongoing'], impact:['scale'], pri:20 },
+  { id:'b22', ws:'b2b', name:'Pitch after-school clubs to 3 schools', detail:'Recurring: school pays per term. Guaranteed volume.', phase:'scale', done:false, tags:['scale','month-3'], impact:['students','scale'], pri:22 },
+  { id:'b13', ws:'b2b', name:'Draft social value statement', detail:'Digital inclusion, social mobility, underrepresented groups.', phase:'scale', done:false, tags:['scale','month-3'], impact:['scale'], pri:18 },
+  { id:'b14', ws:'b2b', name:'Build bid master document', detail:'Standard answers, evidence bank, pricing. Claude-assisted.', phase:'scale', done:false, tags:['scale','month-3'], impact:['scale'], pri:18 },
+  { id:'b21', ws:'b2b', name:'Teacher CPD workshops', detail:'"Intro to Python for Teachers." Schools have CPD budgets.', phase:'scale', done:false, tags:['scale','q3'], impact:['scale','students'], pri:14 },
+  { id:'b23', ws:'b2b', name:'Corporate CSR pipeline', detail:'Leicester tech companies sponsor places for disadvantaged kids.', phase:'scale', done:false, tags:['scale','q3','blind-spot'], impact:['scale'], pri:12 },
+  { id:'b24', ws:'b2b', name:'Apprenticeship pathway partnerships', detail:'Link with employers. CyberAIStep as feeder. Parent differentiator.', phase:'scale', done:false, tags:['scale','q3','blind-spot'], impact:['scale'], pri:10 },
+
+  // OPS
+  { id:'o1', ws:'ops', name:'Google Drive folders (5)', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o2', ws:'ops', name:'Business model spreadsheet', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o3', ws:'ops', name:'Unit economics sheet', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o4', ws:'ops', name:'Master Services Agreement', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o5', ws:'ops', name:'Pricing: \u00A369.99 / \u00A364.99 sibling', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o6', ws:'ops', name:'ClassForKids live', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o7', ws:'ops', name:'Pivoted to kids/teens (7-18)', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o8', ws:'ops', name:'V1 landing page (Lovable)', detail:'', phase:'done', done:true, tags:['done'], impact:[], pri:0 },
+  { id:'o9', ws:'ops', name:'Create emergency/medical procedure', detail:'Written procedure, nearest A&E, emergency contacts at registration.', phase:'now', done:false, tags:['urgent','blind-spot','red-flag'], impact:['protect'], pri:95 },
+  { id:'o10', ws:'ops', name:'Set up bookkeeping tracker', detail:'Income, expenses, ad spend. Google Sheet. Needed for tax + grants.', phase:'now', done:false, tags:['this-week','blind-spot'], impact:['scale'], pri:72 },
+  { id:'o12', ws:'ops', name:'Optimise ClassForKids listing', detail:'Photos, full description, all blocks, pricing, compelling copy.', phase:'now', done:false, tags:['this-week'], impact:['students'], pri:76 },
+  { id:'o11', ws:'ops', name:'Plan backup instructor cover', detail:'1 person who could cover. Simplified session plan.', phase:'next', done:false, tags:['next-week','blind-spot'], impact:['protect'], pri:42 },
+  { id:'o13', ws:'ops', name:'Set up retention tracking', detail:'Who returns for Block 2? 55%+ = healthy, <40% = investigate.', phase:'next', done:false, tags:['next-week'], impact:['students'], pri:48 },
+  { id:'o14', ws:'ops', name:'Parent feedback survey (end of Block 1)', detail:'Google Form, 5 questions. Data for decisions.', phase:'next', done:false, tags:['next-week','blind-spot'], impact:['quality','students'], pri:46 },
+  { id:'o20', ws:'ops', name:'Write SOPs', detail:'Session setup, onboarding, comms templates, incident form. Before hiring.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:22 },
+  { id:'o23', ws:'ops', name:'Open second class slot', detail:'Saturday + weekday evening. Double capacity, same fixed costs.', phase:'scale', done:false, tags:['scale','month-2'], impact:['students','scale'], pri:30 },
+  { id:'o25', ws:'ops', name:'12-month financial forecast', detail:'Students x pricing x retention - costs. For grants + planning.', phase:'scale', done:false, tags:['scale','month-2'], impact:['scale'], pri:24 },
+  { id:'o21', ws:'ops', name:'Hire first TA', detail:'When class hits 8+ regularly. Frees you to manage + grow.', phase:'scale', done:false, tags:['scale','month-3'], impact:['scale'], pri:20 },
+  { id:'o22', ws:'ops', name:'Create TA training pack', detail:'Session structure, tiers, pitfalls, behaviour, safeguarding.', phase:'scale', done:false, tags:['scale','month-3'], impact:['scale','quality'], pri:18 },
+  { id:'o24', ws:'ops', name:'Scout second venue', detail:'New catchment area. Community centres, school halls, libraries.', phase:'scale', done:false, tags:['scale','q3'], impact:['students','scale'], pri:12 },
+  { id:'o26', ws:'ops', name:'Consider Ltd company registration', detail:'Liability protection, professional for B2B, tax advantages.', phase:'scale', done:false, tags:['scale','q3','blind-spot'], impact:['scale'], pri:10 },
+  { id:'o27', ws:'ops', name:'Quarterly business reviews', detail:'Every 3 months: students, revenue, retention, ROI, curriculum. 1 hour.', phase:'scale', done:false, tags:['scale','month-3'], impact:['scale'], pri:16 },
+  { id:'o28', ws:'ops', name:'Create waiting list system', detail:'Capture demand when full. Social proof + planning signal.', phase:'scale', done:false, tags:['scale','month-2','blind-spot'], impact:['students'], pri:22 },
+];
+
+const WS_META = {
+  compliance: { icon: '\uD83D\uDEE1\uFE0F', title: 'Compliance & Safeguarding', color: '#ef4444' },
+  curriculum: { icon: '\uD83D\uDCDA', title: 'Curriculum & Delivery', color: '#3b82f6' },
+  marketing:  { icon: '\uD83D\uDCE3', title: 'Marketing & B2C Growth', color: '#f59e0b' },
+  b2b:        { icon: '\uD83C\uDFEB', title: 'B2B & Public Sector', color: '#a855f7' },
+  ops:        { icon: '\u2699\uFE0F', title: 'Operations & Finance', color: '#22c55e' },
+};
+
+const IMPACT_LABELS = {
+  students: { label: 'More Students', cls: 'impact-students' },
+  quality:  { label: 'Education Quality', cls: 'impact-quality' },
+  scale:    { label: 'Scale B2B/B2C', cls: 'impact-scale' },
+  protect:  { label: 'Protect Business', cls: 'impact-protect' },
+};
+
+const PHASE_LABELS = { done:'\u2705 Completed', now:'\u26A1 Do Now', next:'\uD83D\uDCC5 Up Next', scale:'\uD83D\uDE80 Growth & Scale' };
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let state = { completed: {}, streak: 0, lastCompleteDate: null, openWs: {}, parkingLot: [], activeTab: 'focus', wsFilter: 'all' };
+
+function load() {
+  try {
+    const s = localStorage.getItem('cas_v4');
+    if (s) { const p = JSON.parse(s); Object.assign(state, p); }
+  } catch(e) {}
+  TASKS.forEach(t => { if (state.completed[t.id] !== undefined) t.done = state.completed[t.id]; });
+  updateStreak();
+}
+
+function save() {
+  TASKS.forEach(t => { state.completed[t.id] = t.done; });
+  try { localStorage.setItem('cas_v4', JSON.stringify(state)); } catch(e) {}
+}
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+function updateStreak() {
+  const today = todayStr();
+  if (state.lastCompleteDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  if (state.lastCompleteDate !== yesterday && state.lastCompleteDate !== today) {
+    state.streak = 0;
+  }
+}
+
+function markStreakToday() {
+  const today = todayStr();
+  if (state.lastCompleteDate !== today) {
+    state.streak++;
+    state.lastCompleteDate = today;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════════════
+function urgentCount() { return TASKS.filter(t => !t.done && (t.tags.includes('urgent') || t.tags.includes('red-flag'))).length; }
+
+function renderTabs() {
+  const uc = urgentCount();
+  const tabs = [
+    { key: 'focus', label: '\u26A1 Today\'s Focus', badge: uc },
+    { key: 'plan', label: '\uD83D\uDCCB Full Plan' },
+    { key: 'parking', label: '\uD83C\uDFAF Parking Lot' },
+  ];
+  document.getElementById('tabs').innerHTML = tabs.map(t =>
+    `<button class="tab ${state.activeTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}${t.badge?`<span class="tab-badge">${t.badge}</span>`:''}</button>`
+  ).join('');
+}
+
+function switchTab(key) { state.activeTab = key; save(); render(); }
+
+function render() {
+  renderTabs();
+  const app = document.getElementById('app');
+  if (state.activeTab === 'focus') renderFocus(app);
+  else if (state.activeTab === 'plan') renderPlan(app);
+  else renderParking(app);
+}
+
+function getTodayTasks() {
+  return TASKS.filter(t => !t.done && (t.phase === 'now'))
+    .sort((a,b) => b.pri - a.pri)
+    .slice(0, 5);
+}
+
+function getWeekDone() {
+  const start = new Date();
+  start.setDate(start.getDate() - start.getDay());
+  start.setHours(0,0,0,0);
+  // We'll approximate: count all completed non-originally-done tasks
+  return TASKS.filter(t => t.done && t.phase !== 'done').length;
+}
+
+function renderFocus(el) {
+  const todayTasks = getTodayTasks();
+  const totalDone = TASKS.filter(t => t.done).length;
+  const totalAll = TASKS.length;
+  const pct = Math.round((totalDone/totalAll)*100);
+
+  const allTodayDone = todayTasks.length === 0;
+
+  el.innerHTML = `
+    <div class="focus-header">
+      <div class="focus-date">${new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</div>
+      <div class="focus-title">${allTodayDone ? 'All caught up \uD83C\uDF89' : 'What moves the needle today?'}</div>
+      <div class="focus-subtitle">${pct}% complete \u00B7 ${totalDone} of ${totalAll} tasks done</div>
+    </div>
+
+    <div class="streak-bar">
+      <div class="streak-item"><div class="streak-num streak-fire">${state.streak}</div><div class="streak-label">\uD83D\uDD25 Day Streak</div></div>
+      <div class="streak-item"><div class="streak-num streak-total">${totalDone}</div><div class="streak-label">Total Done</div></div>
+      <div class="streak-item"><div class="streak-num streak-week">${TASKS.filter(t=>!t.done&&t.phase==='now').length}</div><div class="streak-label">Remaining Now</div></div>
+    </div>
+
+    <div class="needle-question">
+      Before starting anything new, ask: <strong>"Does this get me more students, improve education quality, or scale the business?"</strong><br>If not \u2014 park it.
+    </div>
+
+    ${allTodayDone ? `
+      <div class="all-done-msg">
+        <div class="emoji">\uD83D\uDCAA</div>
+        <div class="title">All "Do Now" tasks complete</div>
+        <div class="sub">Move to the Full Plan tab and pull tasks from "Up Next" into your week. Or rest \u2014 consistency beats intensity.</div>
+      </div>
+    ` : `
+      <div class="today-section">
+        <div class="today-label">\u26A1 Your focus today <span class="count">${todayTasks.length} tasks</span></div>
+        ${todayTasks.map(t => renderFocusTask(t)).join('')}
+      </div>
+    `}
+  `;
+}
+
+function renderFocusTask(t) {
+  const ws = WS_META[t.ws];
+  return `
+    <div class="focus-task ${t.done?'completed':''}">
+      <div class="ft-check ${t.done?'done':''}" onclick="toggleFocus('${t.id}')"></div>
+      <div class="ft-content">
+        <div class="ft-name ${t.done?'done':''}">${t.name}</div>
+        ${t.detail ? `<div class="ft-detail">${t.detail}</div>` : ''}
+        <div class="ft-meta">
+          <span class="impact-tag impact-ws">${ws.icon} ${ws.title.split(' ')[0]}</span>
+          ${t.impact.map(i => IMPACT_LABELS[i] ? `<span class="impact-tag ${IMPACT_LABELS[i].cls}">${IMPACT_LABELS[i].label}</span>` : '').join('')}
+          ${t.tags.filter(x=>x!=='done').map(tag => `<span class="tag tag-${tag}">${tag.replace(/-/g,' ')}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleFocus(id) {
+  const t = TASKS.find(x => x.id === id);
+  t.done = !t.done;
+  if (t.done) markStreakToday();
+  save(); render();
+}
+
+// FULL PLAN
+function renderPlan(el) {
+  const filters = [
+    { key:'all', label:'All' }, { key:'todo', label:'To Do' }, { key:'urgent', label:'\uD83D\uDD34 Urgent' },
+    { key:'this-week', label:'\uD83D\uDFE1 This Week' }, { key:'next-week', label:'\uD83D\uDD35 Next' },
+    { key:'scale', label:'\uD83D\uDE80 Growth' }, { key:'blind-spot', label:'\uD83D\uDFE3 Blind Spots' },
+    { key:'done', label:'\u2713 Done' },
+  ];
+
+  let html = `<div class="filter-bar">${filters.map(f =>
+    `<button class="fbtn ${state.wsFilter===f.key?'active':''}" onclick="setWsFilter('${f.key}')">${f.label}</button>`
+  ).join('')}</div>`;
+
+  for (const [wsId, meta] of Object.entries(WS_META)) {
+    const wsTasks = TASKS.filter(t => t.ws === wsId);
+    const filtered = wsTasks.filter(t => matchFilter(t, state.wsFilter));
+    if (filtered.length === 0 && state.wsFilter !== 'all') continue;
+
+    const done = wsTasks.filter(t => t.done).length;
+    const total = wsTasks.length;
+    const pct = Math.round((done/total)*100);
+    const isOpen = state.openWs[wsId];
+    const display = state.wsFilter === 'all' ? wsTasks : filtered;
+
+    const phases = { done:[], now:[], next:[], scale:[] };
+    display.forEach(t => { if(phases[t.phase]) phases[t.phase].push(t); });
+
+    let body = '';
+    for (const [ph, items] of Object.entries(phases)) {
+      if (!items.length) continue;
+      body += `<div class="phase-hdr">${PHASE_LABELS[ph]}</div>`;
+      body += items.map(t => `
+        <div class="task-row">
+          <div class="t-check ${t.done?'done':''}" onclick="togglePlan('${t.id}')"></div>
+          <div class="t-content">
+            <div class="t-name ${t.done?'done':''}">${t.name}</div>
+            ${t.detail?`<div class="t-detail">${t.detail}</div>`:''}
+            <div class="t-tags">
+              ${t.impact.map(i=>IMPACT_LABELS[i]?`<span class="impact-tag ${IMPACT_LABELS[i].cls}">${IMPACT_LABELS[i].label}</span>`:'').join('')}
+              ${t.tags.filter(x=>x!=='done').map(tag=>`<span class="tag tag-${tag}">${tag.replace(/-/g,' ')}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    html += `
+      <div class="ws-section">
+        <div class="ws-head" onclick="toggleWsPlan('${wsId}')">
+          <div class="ws-left"><span class="ws-icon">${meta.icon}</span><span class="ws-title">${meta.title}</span></div>
+          <div class="ws-right"><div class="pbar"><div class="pfill" style="width:${pct}%;background:${meta.color}"></div></div><span>${done}/${total}</span><span class="chev ${isOpen?'open':''}">\u25B6</span></div>
+        </div>
+        ${isOpen?`<div class="ws-body">${body}</div>`:''}
+      </div>
+    `;
+  }
+  el.innerHTML = html;
+}
+
+function matchFilter(t, f) {
+  if (f==='all') return true;
+  if (f==='todo') return !t.done;
+  if (f==='done') return t.done;
+  return t.tags.includes(f) && !t.done;
+}
+
+function setWsFilter(f) { state.wsFilter = f; save(); render(); }
+function toggleWsPlan(id) { state.openWs[id] = !state.openWs[id]; save(); render(); }
+function togglePlan(id) {
+  const t = TASKS.find(x=>x.id===id);
+  t.done = !t.done;
+  if (t.done) markStreakToday();
+  save(); render();
+}
+
+// PARKING LOT
+function renderParking(el) {
+  el.innerHTML = `
+    <div class="parking-lot">
+      <div class="pl-title">\uD83C\uDFAF Shiny Object Parking Lot</div>
+      <div class="pl-subtitle">Had a new idea? Park it here instead of acting on it. Review weekly \u2014 if it still matters after 7 days, promote it to the plan.</div>
+      <div class="pl-input-row">
+        <input class="pl-input" id="plInput" placeholder="Park a new idea here..." onkeydown="if(event.key==='Enter')addParking()">
+        <button class="pl-add-btn" onclick="addParking()">Park it</button>
+      </div>
+      <div id="plList">
+        ${state.parkingLot.length === 0 ? '<div class="pl-empty">Nothing parked. Good focus.</div>' :
+          state.parkingLot.map((item, i) => `
+            <div class="pl-item">
+              <span>${item.text}</span>
+              <span class="pl-date">${item.date}</span>
+              <span class="pl-remove" onclick="removeParking(${i})">\u2715</span>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+    <div class="needle-question" style="margin-top:16px">
+      <strong>Weekly review ritual (every Sunday, 15 mins):</strong><br>
+      1. Review parked ideas \u2014 delete or promote to plan<br>
+      2. Check streak \u2014 did you show up every day?<br>
+      3. Pick your top 3 focus tasks for Monday<br>
+      4. Ask: "Am I closer to 20 students this month?"
+    </div>
+  `;
+}
+
+function addParking() {
+  const input = document.getElementById('plInput');
+  const text = input.value.trim();
+  if (!text) return;
+  state.parkingLot.push({ text, date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}) });
+  input.value = '';
+  save(); render();
+}
+
+function removeParking(i) {
+  state.parkingLot.splice(i, 1);
+  save(); render();
+}
+
+// INIT
+load();
+render();
+</script>
+</body>
+</html>
