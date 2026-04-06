@@ -26,12 +26,37 @@
   --cyan: #06b6d4;
   --cyan-dim: #083344;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
+[data-theme="light"] {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface2: #eef0f5;
+  --border: #d1d5db;
+  --text: #111827;
+  --text2: #4b5563;
+  --text3: #9ca3af;
+  --accent: #2563eb;
+  --accent-dim: #dbeafe;
+  --green: #16a34a;
+  --green-dim: #dcfce7;
+  --orange: #d97706;
+  --orange-dim: #fef3c7;
+  --red: #dc2626;
+  --red-dim: #fee2e2;
+  --purple: #9333ea;
+  --purple-dim: #f3e8ff;
+  --cyan: #0891b2;
+  --cyan-dim: #cffafe;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.25s, border-color 0.25s, color 0.2s; }
 html { font-size: clamp(16px, 1.8vw, 20px); }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: clamp(12px, 3vw, 24px); max-width: 900px; margin: 0 auto; font-size: 1rem; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: clamp(12px, 3vw, 24px); max-width: 900px; margin: 0 auto; font-size: 1rem; transition: background 0.25s, color 0.25s; }
+
+/* THEME TOGGLE */
+.theme-toggle { margin-left: auto; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; align-self: center; }
+.theme-toggle:hover { border-color: var(--accent); color: var(--text); }
 
 /* TABS */
-.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tabs { display: flex; gap: 4px; align-items: stretch; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
 .tab { background: none; border: none; color: var(--text2); padding: 12px 20px; cursor: pointer; font-size: 1rem; font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.15s; }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab:hover { color: var(--text); }
@@ -348,9 +373,12 @@ function renderTabs() {
     { key: 'plan', label: '\uD83D\uDCCB Full Plan' },
     { key: 'parking', label: '\uD83C\uDFAF Parking Lot' },
   ];
-  document.getElementById('tabs').innerHTML = tabs.map(t =>
-    `<button class="tab ${state.activeTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}${t.badge?`<span class="tab-badge">${t.badge}</span>`:''}</button>`
-  ).join('');
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  document.getElementById('tabs').innerHTML =
+    tabs.map(t =>
+      `<button class="tab ${state.activeTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}${t.badge?`<span class="tab-badge">${t.badge}</span>`:''}</button>`
+    ).join('') +
+    `<button class="theme-toggle" onclick="toggleTheme()">${isDark ? '☀️ Light' : '🌙 Dark'}</button>`;
 }
 
 function switchTab(key) { state.activeTab = key; save(); render(); }
@@ -563,7 +591,25 @@ function removeParking(i) {
   save(); render();
 }
 
+// THEME
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('cas_theme', theme); } catch(e) {}
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'light' ? 'dark' : 'light');
+  renderTabs();
+}
+
 // INIT
+try {
+  const savedTheme = localStorage.getItem('cas_theme');
+  applyTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+} catch(e) {
+  applyTheme('dark');
+}
 load();
 render();
 </script>
