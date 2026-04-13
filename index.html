@@ -25,6 +25,9 @@
   --purple-dim: #3b0764;
   --cyan: #06b6d4;
   --cyan-dim: #083344;
+  --guide-panel: #111a2b;
+  --guide-panel-2: #0b1220;
+  --guide-glow: rgba(59, 130, 246, 0.35);
 }
 [data-theme="light"] {
   --bg: #f5f7fa;
@@ -46,6 +49,9 @@
   --purple-dim: #f3e8ff;
   --cyan: #0891b2;
   --cyan-dim: #cffafe;
+  --guide-panel: #f9fbff;
+  --guide-panel-2: #edf5ff;
+  --guide-glow: rgba(37, 99, 235, 0.18);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.25s, border-color 0.25s, color 0.2s; }
 html { font-size: clamp(16px, 1.8vw, 20px); }
@@ -100,6 +106,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ft-name.done { text-decoration: line-through; color: var(--text2); }
 .ft-detail { font-size: 0.9rem; color: var(--text2); margin-top: 4px; }
 .ft-meta { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.guide-shell { margin-top: 12px; }
+.plan-guide-shell { margin-top: 10px; }
+.guide-toggle { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #16a34a, #22c55e); border: 1px solid #7dd3fc; color: white; padding: 10px 14px; border-radius: 14px; cursor: pointer; font-size: 0.88rem; font-weight: 700; box-shadow: 0 0 0 2px var(--guide-glow); }
+.guide-toggle:hover { transform: translateY(-1px); filter: brightness(1.03); }
+.guide-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.guide-toggle.open { background: linear-gradient(135deg, #13854a, #16a34a); }
+.guide-chevron { font-size: 0.85rem; transition: transform 0.2s; }
+.guide-toggle.open .guide-chevron { transform: rotate(180deg); }
+.guide-panel { margin-top: 16px; padding: 18px; border-radius: 18px; background: linear-gradient(180deg, var(--guide-panel), var(--guide-panel-2)); border: 1px solid #203048; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+.guide-section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--cyan); margin-bottom: 12px; font-weight: 700; }
+.guide-step-count { color: var(--text2); font-size: 0.78rem; margin-left: 8px; font-weight: 600; }
+.guide-prompt-wrap { position: relative; background: rgba(8, 15, 31, 0.58); border: 1px solid #2a3952; border-radius: 16px; padding: 18px 86px 18px 18px; }
+[data-theme="light"] .guide-prompt-wrap { background: rgba(255,255,255,0.76); }
+.guide-copy { position: absolute; top: 14px; right: 14px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
+.guide-copy:hover { border-color: var(--accent); color: var(--accent); }
+.guide-copy.copied { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.guide-prompt { white-space: pre-wrap; font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85rem; line-height: 1.65; color: var(--text); }
+.guide-divider { height: 1px; margin: 18px 0 22px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+.guide-steps { display: grid; gap: 10px; }
+.guide-step { display: flex; align-items: flex-start; gap: 12px; }
+.guide-step-check { width: 30px; height: 30px; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.guide-step-check:hover { border-color: var(--green); }
+.guide-step-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.guide-step-check.done { background: var(--green); border-color: var(--green); }
+.guide-step-check.done::after { content: '\2713'; color: white; font-size: 14px; font-weight: 700; }
+.guide-step-text { font-size: 0.92rem; color: var(--text); }
+.guide-step-text.done { color: var(--text2); text-decoration: line-through; }
+.plan-guide-shell .guide-toggle { padding: 9px 13px; font-size: 0.82rem; }
 
 .impact-tag { font-size: 0.72rem; padding: 3px 9px; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
 .impact-students { background: var(--green-dim); color: var(--green); }
@@ -197,6 +231,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   .streak-num { font-size: 1.6rem; }
   .ft-name { font-size: 1rem; }
   .tab { padding: 10px 14px; font-size: 0.95rem; }
+  .guide-toggle { width: 100%; justify-content: center; }
+  .guide-prompt-wrap { padding: 18px; }
+  .guide-copy { position: static; margin-bottom: 12px; }
 }
 </style>
 </head>
@@ -337,11 +374,52 @@ const IMPACT_LABELS = {
 };
 
 const PHASE_LABELS = { done:'\u2705 Completed', now:'\u26A1 Do Now', next:'\uD83D\uDCC5 Up Next', scale:'\uD83D\uDE80 Growth & Scale' };
+const GUIDE_PERSONAS = {
+  compliance: 'a UK safeguarding and compliance advisor',
+  curriculum: 'an engaging coding curriculum coach',
+  marketing: 'a practical local growth marketer for education businesses',
+  b2b: 'a school partnerships and tenders coach',
+  ops: 'an operations advisor for a small education business',
+};
+const GUIDE_WORKFLOW_STEPS = {
+  compliance: [
+    'Gather the forms, logins, IDs, certificates, payment details, or policy inputs you need before starting.',
+    'Complete the application, training, or draft document in the simplest version that satisfies the requirement.',
+    'Save the proof of completion in Google Drive with a clear file name so you can find it quickly later.',
+    'Do a final compliance check so nothing important is missing, late, or unclear.',
+  ],
+  curriculum: [
+    'Outline the learning goal, what students will build, and the key checkpoint moments.',
+    'Create the activity, examples, worksheets, or delivery notes in a simple sequence.',
+    'Test it from a student point of view and fix any confusing instructions, gaps, or broken examples.',
+    'Save the final version somewhere reusable and note one improvement for the next delivery.',
+  ],
+  marketing: [
+    'Pick one audience and one call to action so the message stays focused.',
+    'Gather the asset you need first: photo, video, testimonial, offer, link, or booking page.',
+    'Draft and publish the copy or creative, then check the booking path yourself on mobile.',
+    'Note the result you will measure so you know whether to repeat, refine, or stop.',
+  ],
+  b2b: [
+    'Identify the buyer, opportunity, or target list and the specific outcome you want from this step.',
+    'Pull together the credibility assets you need: offer, outcomes, pricing, credentials, and proof.',
+    'Draft the email, pitch, registration, or application around their needs, not just your offer.',
+    'Log the action, store the evidence, and set the follow-up date immediately.',
+  ],
+  ops: [
+    'List the tools, accounts, numbers, or documents you need so setup does not stall halfway through.',
+    'Build the sheet, process, page, or template in the simplest version that already works.',
+    'Run one realistic test so you know it works in practice, not just in theory.',
+    'Save the link and add any reminder or SOP note needed to maintain it.',
+  ],
+};
 
 // ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
-let state = { completed: {}, streak: 0, lastCompleteDate: null, openWs: {}, parkingLot: [], activeTab: 'focus', wsFilter: 'all' };
+let state = { completed: {}, streak: 0, lastCompleteDate: null, openWs: {}, parkingLot: [], activeTab: 'focus', wsFilter: 'all', guideOpen: {}, guideChecks: {} };
+let copiedGuideId = null;
+let copiedGuideTimer = null;
 
 function load() {
   try {
@@ -404,6 +482,122 @@ function render() {
   if (state.activeTab === 'focus') renderFocus(app);
   else if (state.activeTab === 'plan') renderPlan(app);
   else renderParking(app);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+
+function normaliseText(value) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function shortenText(value, max = 150) {
+  const text = normaliseText(value);
+  if (!text) return '';
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+}
+
+function getGuideSteps(t) {
+  const base = GUIDE_WORKFLOW_STEPS[t.ws] || GUIDE_WORKFLOW_STEPS.ops;
+  const detail = shortenText(t.detail);
+  const steps = [
+    `Define what "done" means for "${t.name}" before you start.`,
+    detail ? `Use the task note as your checklist: ${detail}` : base[0],
+    ...base.slice(1),
+  ];
+
+  if (t.tags.includes('urgent') || t.tags.includes('red-flag')) {
+    steps[0] = `Block focused time today for "${t.name}" and take the first meaningful action before lower-priority work.`;
+  }
+
+  if (t.tags.includes('ongoing')) {
+    steps[4] = 'Set the repeat cadence, checklist, and minimum standard so this stays consistent over time.';
+  } else if (t.tags.includes('red-flag') || t.tags.includes('blind-spot')) {
+    steps[4] = 'Do a final risk check: ask what would break if this were missing, late, or unclear, then close that gap.';
+  } else if (t.tags.includes('scale')) {
+    steps[4] = 'Turn the finished result into a reusable template or repeatable system so the business can scale it.';
+  } else if (t.tags.includes('next-week')) {
+    steps[4] = 'Book the next work session or follow-up date now so this does not drift into the background.';
+  }
+
+  return steps.slice(0, 5);
+}
+
+function getGuidePrompt(t) {
+  const persona = GUIDE_PERSONAS[t.ws] || 'a practical business mentor';
+  const detail = normaliseText(t.detail) || 'No extra task detail was provided.';
+  const tags = t.tags.filter(tag => tag !== 'done').map(tag => tag.replace(/-/g, ' ')).join(', ') || 'none listed';
+  const impacts = t.impact.map(i => IMPACT_LABELS[i]?.label).filter(Boolean).join(', ') || 'Operational support';
+  const speedLine = (t.tags.includes('urgent') || t.tags.includes('red-flag'))
+    ? 'This is time-sensitive, so show me the quickest responsible path.'
+    : 'Keep the plan simple and realistic for one focused work session.';
+  const blindLine = (t.tags.includes('blind-spot') || t.tags.includes('red-flag'))
+    ? 'Call out hidden risks, dependencies, or things I might overlook.'
+    : 'Point out any dependencies I should handle first.';
+  const scaleLine = (t.tags.includes('scale') || t.tags.includes('ongoing'))
+    ? 'If relevant, show me how to make the result reusable or repeatable.'
+    : 'Keep it practical and avoid overengineering.';
+
+  return `I’m working on "${t.name}" for CyberAIStep, a kids coding business.
+
+Context: ${detail}
+Workspace: ${WS_META[t.ws].title}
+Priority tags: ${tags}
+Why it matters: ${impacts}
+
+Act like ${persona}. Explain this in simple, practical language and give me:
+1. the fastest sensible way to complete it,
+2. the materials, links, or information I need before I start,
+3. a step-by-step plan I can follow,
+4. what "done" looks like,
+5. the biggest mistakes or blind spots to avoid.
+
+${speedLine}
+${blindLine}
+${scaleLine}`;
+}
+
+function getTaskGuide(t) {
+  return { prompt: getGuidePrompt(t), steps: getGuideSteps(t) };
+}
+
+function renderGuidePanel(t, variant = 'focus') {
+  const open = !!state.guideOpen[t.id];
+  const guide = getTaskGuide(t);
+  const checks = state.guideChecks[t.id] || {};
+  const checkedCount = guide.steps.filter((_, i) => checks[i]).length;
+
+  return `
+    <div class="guide-shell ${variant === 'plan' ? 'plan-guide-shell' : ''}">
+      <button class="guide-toggle ${open ? 'open' : ''}" type="button" onclick="toggleGuide('${t.id}')" aria-expanded="${open}" aria-controls="guide-panel-${t.id}">
+        <span>\uD83E\uDDE0 Guide Me</span>
+        <span class="guide-chevron">\u25BE</span>
+      </button>
+      ${open ? `
+        <div class="guide-panel" id="guide-panel-${t.id}">
+          <div class="guide-section-title">AI Mentor Prompt</div>
+          <div class="guide-prompt-wrap">
+            <button class="guide-copy ${copiedGuideId === t.id ? 'copied' : ''}" type="button" onclick="copyGuidePrompt('${t.id}')">${copiedGuideId === t.id ? 'Copied' : 'Copy'}</button>
+            <div class="guide-prompt">${escapeHtml(guide.prompt)}</div>
+          </div>
+          <div class="guide-divider"></div>
+          <div class="guide-section-title">Definition of Done (Micro-steps)<span class="guide-step-count">${checkedCount}/${guide.steps.length} checked</span></div>
+          <div class="guide-steps">
+            ${guide.steps.map((step, i) => {
+              const done = !!checks[i];
+              return `
+                <div class="guide-step">
+                  <button class="guide-step-check ${done ? 'done' : ''}" type="button" onclick="toggleGuideStep('${t.id}', ${i})" aria-pressed="${done}" aria-label="${done ? 'Mark guide step incomplete' : 'Mark guide step complete'}"></button>
+                  <div class="guide-step-text ${done ? 'done' : ''}">${escapeHtml(step)}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
 }
 
 function getTodayTasks() {
@@ -470,6 +664,7 @@ function renderFocusTask(t) {
           ${t.impact.map(i => IMPACT_LABELS[i] ? `<span class="impact-tag ${IMPACT_LABELS[i].cls}">${IMPACT_LABELS[i].label}</span>` : '').join('')}
           ${t.tags.filter(x=>x!=='done').map(tag => `<span class="tag tag-${tag}">${tag.replace(/-/g,' ')}</span>`).join('')}
         </div>
+        ${renderGuidePanel(t, 'focus')}
       </div>
     </div>
   `;
@@ -523,6 +718,7 @@ function renderPlan(el) {
               ${t.impact.map(i=>IMPACT_LABELS[i]?`<span class="impact-tag ${IMPACT_LABELS[i].cls}">${IMPACT_LABELS[i].label}</span>`:'').join('')}
               ${t.tags.filter(x=>x!=='done').map(tag=>`<span class="tag tag-${tag}">${tag.replace(/-/g,' ')}</span>`).join('')}
             </div>
+            ${renderGuidePanel(t, 'plan')}
           </div>
         </div>
       `).join('');
@@ -555,6 +751,47 @@ function togglePlan(id) {
   t.done = !t.done;
   if (t.done) markStreakToday();
   save(); render();
+}
+
+function toggleGuide(id) {
+  state.guideOpen[id] = !state.guideOpen[id];
+  save(); render();
+}
+
+function toggleGuideStep(taskId, stepIndex) {
+  if (!state.guideChecks[taskId]) state.guideChecks[taskId] = {};
+  state.guideChecks[taskId][stepIndex] = !state.guideChecks[taskId][stepIndex];
+  save(); render();
+}
+
+async function copyGuidePrompt(taskId) {
+  const task = TASKS.find(x => x.id === taskId);
+  if (!task) return;
+  const text = getTaskGuide(task).prompt;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      document.body.removeChild(area);
+    }
+
+    copiedGuideId = taskId;
+    render();
+    if (copiedGuideTimer) clearTimeout(copiedGuideTimer);
+    copiedGuideTimer = setTimeout(() => {
+      copiedGuideId = null;
+      render();
+    }, 1400);
+  } catch (e) {}
 }
 
 // PARKING LOT
