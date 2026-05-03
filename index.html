@@ -138,7 +138,7 @@
       backdrop-filter: blur(22px);
     }
 
-    .hero-panel { padding: clamp(20px, 3vw, 32px); overflow: hidden; position: relative; }
+    .hero-panel { padding: clamp(16px, 2.5vw, 24px); overflow: hidden; position: relative; }
     .hero-panel::after {
       content: "";
       position: absolute;
@@ -152,12 +152,12 @@
       pointer-events: none;
     }
     .eyebrow { color: var(--terminal); font-family: "JetBrains Mono", monospace; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; }
-    .hero h2 { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(2rem, 5vw, 4.25rem); line-height: 0.95; margin: 12px 0 14px; letter-spacing: 0; }
-    .hero p { margin: 0; max-width: 720px; color: var(--text-2); font-size: clamp(0.98rem, 1.8vw, 1.08rem); }
-    .side-panel { padding: 18px; display: grid; gap: 14px; }
-    .progress-ring { display: grid; place-items: center; aspect-ratio: 1 / 1; max-height: 220px; margin: auto; border-radius: 50%; background: conic-gradient(var(--terminal) calc(var(--pct) * 1%), var(--surface-soft) 0); position: relative; }
+    .hero h2 { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(1.6rem, 3.5vw, 2.6rem); line-height: 0.95; margin: 8px 0 10px; letter-spacing: 0; }
+    .hero p { margin: 0; max-width: 720px; color: var(--text-2); font-size: clamp(0.9rem, 1.5vw, 1rem); }
+    .side-panel { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .progress-ring { display: grid; place-items: center; aspect-ratio: 1 / 1; width: 100%; max-width: 180px; margin: auto; border-radius: 50%; background: conic-gradient(var(--terminal) calc(var(--pct) * 1%), var(--surface-soft) 0); position: relative; }
     .progress-ring::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--surface-strong); }
-    .progress-ring strong { position: relative; font-family: "Space Grotesk"; font-size: clamp(2.2rem, 6vw, 3.8rem); }
+    .progress-ring strong { position: relative; font-family: "Space Grotesk"; font-size: clamp(1.8rem, 4vw, 3rem); }
     .progress-ring span { position: relative; display: block; color: var(--text-2); font-weight: 800; margin-top: -10px; }
 
     .auth-card { margin: 22px auto; max-width: 520px; padding: clamp(20px, 4vw, 32px); }
@@ -215,10 +215,10 @@
     .tab.active, .filter-btn.active { color: var(--midnight); background: var(--terminal); border-color: var(--terminal); }
     .tab-badge { margin-left: 7px; background: var(--coral); color: white; border-radius: 999px; padding: 1px 7px; font-size: 0.75rem; }
 
-    .dashboard { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
-    .stat-card { padding: 14px; min-height: 104px; display: grid; align-content: space-between; }
-    .stat-card span { color: var(--text-2); font-size: 0.78rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; }
-    .stat-card strong { font-family: "Space Grotesk"; font-size: 2rem; line-height: 1; }
+    .dashboard { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .stat-card { padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex: 1 1 auto; justify-content: space-between; border-radius: 8px; }
+    .stat-card span { color: var(--text-2); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card strong { font-family: "Space Grotesk"; font-size: 1.4rem; line-height: 1; margin-left: auto; }
     .stat-card.accent { border-color: rgba(34, 211, 166, 0.42); }
 
     .toolbar {
@@ -336,7 +336,6 @@
       .topbar { position: static; grid-template-columns: 1fr; }
       .top-actions { justify-content: flex-start; }
       .brand-sub { white-space: normal; }
-      .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .form-grid { grid-template-columns: 1fr; }
       .category-row { grid-template-columns: 1fr; }
       .top-actions { width: 100%; justify-content: flex-end; }
