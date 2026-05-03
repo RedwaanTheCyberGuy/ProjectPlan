@@ -292,6 +292,7 @@
       text-transform: uppercase; letter-spacing: 0;
       box-shadow: 0 0 0 2px var(--surface-2);
       flex-shrink: 0;
+      background: var(--surface-3);
     }
     .avatar.redwaan { background: var(--curiosity); box-shadow: 0 0 8px rgba(118, 146, 255, 0.4); }
     .avatar.tarik { background: var(--imagination); box-shadow: 0 0 8px rgba(157, 102, 255, 0.4); }
@@ -828,9 +829,9 @@
       }).join("");
     }
 
-    function renderFocus() {
-      const focus = state.tasks
-        .filter(t => !t.completed && t.category !== "Parking Lot" && (t.status === "Urgent" || t.status === "This Week" || tags(t).includes("urgent") || tags(t).includes("this-week")))
+    function renderFocus(tasks) {
+      const focus = (tasks || state.tasks)
+        .filter(t => t.category !== "Parking Lot" && (t.status === "Urgent" || t.status === "This Week" || tags(t).includes("urgent") || tags(t).includes("this-week")))
         .sort(sortTasks)
         .slice(0, 8);
       els.heroTitle.textContent = focus.length ? "What moves Beyond Code forward today?" : "All immediate work is clear.";
