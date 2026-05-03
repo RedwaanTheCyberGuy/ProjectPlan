@@ -59,8 +59,8 @@ language sql
 stable
 as $$
   select lower(coalesce(auth.jwt() ->> 'email', '')) in (
-    'redwaan@example.com',
-    'partner@example.com'
+    'info@redwaanthecyberguy.com',
+    'tarikmokthar78@hotmail.com'
   );
 $$;
 
@@ -91,13 +91,16 @@ security definer
 set search_path = public
 as $$
 begin
-  if lower(new.email) in ('redwaan@example.com', 'partner@example.com') then
+  if lower(new.email) in ('info@redwaanthecyberguy.com', 'tarikmokthar78@hotmail.com') then
     insert into public.profiles (id, full_name, email, role, avatar_url)
     values (
       new.id,
-      coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+      case 
+        when lower(new.email) = 'info@redwaanthecyberguy.com' then 'Redwaan' 
+        else 'Tarik' 
+      end,
       new.email,
-      case when lower(new.email) = 'redwaan@example.com' then 'owner' else 'partner' end,
+      case when lower(new.email) = 'info@redwaanthecyberguy.com' then 'owner' else 'partner' end,
       new.raw_user_meta_data ->> 'avatar_url'
     )
     on conflict (id) do update
