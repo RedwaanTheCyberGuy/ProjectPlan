@@ -154,7 +154,6 @@
     .eyebrow { color: var(--terminal); font-family: "JetBrains Mono", monospace; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; }
     .hero h2 { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(2rem, 5vw, 4.25rem); line-height: 0.95; margin: 12px 0 14px; letter-spacing: 0; }
     .hero p { margin: 0; max-width: 720px; color: var(--text-2); font-size: clamp(0.98rem, 1.8vw, 1.08rem); }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
     .side-panel { padding: 18px; display: grid; gap: 14px; }
     .progress-ring { display: grid; place-items: center; aspect-ratio: 1 / 1; max-height: 220px; margin: auto; border-radius: 50%; background: conic-gradient(var(--terminal) calc(var(--pct) * 1%), var(--surface-soft) 0); position: relative; }
     .progress-ring::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--surface-strong); }
@@ -340,7 +339,8 @@
       .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .form-grid { grid-template-columns: 1fr; }
       .category-row { grid-template-columns: 1fr; }
-      .hero-actions .btn, .top-actions .btn:not(.icon-btn) { width: 100%; }
+      .top-actions { width: 100%; justify-content: flex-end; }
+      .top-actions .btn:not(.icon-btn) { width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
@@ -393,11 +393,6 @@
             <div class="eyebrow" id="todayDate">Today</div>
             <h2 id="heroTitle">Founder-friendly planning, live for both of you.</h2>
             <p id="heroCopy">A shared command centre for compliance, courses, launch work, marketing, facilities, pricing and the ideas worth parking for the next meeting.</p>
-            <div class="hero-actions">
-              <button class="btn btn-primary" type="button" data-tab-jump="focus">⚡ Today’s Focus</button>
-              <button class="btn" type="button" data-tab-jump="plan">📋 Full Plan</button>
-              <button class="btn" type="button" data-tab-jump="parking">🎯 Parking Lot</button>
-            </div>
           </div>
           <aside class="side-panel">
             <div class="progress-ring" id="progressRing" style="--pct:0">
