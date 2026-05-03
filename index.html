@@ -40,6 +40,7 @@
     }
 
     [data-theme="light"] {
+      --terminal-text: var(--terminal-2);
       --bg: #F1EFE8;
       --bg-pattern: url("./Beyond%20Code/pattern/pattern-light.svg");
       --surface: rgba(255, 255, 255, 0.7);
@@ -139,7 +140,7 @@
       -webkit-backdrop-filter: blur(32px);
     }
 
-    .hero-panel { padding: clamp(16px, 2.5vw, 24px); overflow: hidden; position: relative; }
+    .hero-panel { padding: clamp(16px, 2.5vw, 24px); overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: center; }
     .hero-panel::after {
       content: "";
       position: absolute;
@@ -152,7 +153,7 @@
       border-radius: 8px;
       pointer-events: none;
     }
-    .eyebrow { color: var(--terminal); font-family: "JetBrains Mono", monospace; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; }
+    .eyebrow { color: var(--terminal-text, var(--terminal)); font-family: "JetBrains Mono", monospace; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; }
     .hero h2 { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(1.6rem, 3.5vw, 2.6rem); line-height: 0.95; margin: 8px 0 10px; letter-spacing: 0; }
     .hero p { margin: 0; max-width: 720px; color: var(--text-2); font-size: clamp(0.9rem, 1.5vw, 1rem); }
     .side-panel { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
