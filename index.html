@@ -284,7 +284,20 @@
     .badge.growth { background: color-mix(in srgb, var(--terminal) 18%, transparent); color: var(--terminal); }
     .badge.done { background: color-mix(in srgb, var(--terminal) 20%, transparent); color: var(--terminal); }
     .badge.blind { background: color-mix(in srgb, var(--imagination) 22%, transparent); color: #c7beff; }
-    .card-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+    
+    .avatar {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 50%;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
+      text-transform: uppercase; letter-spacing: 0;
+      box-shadow: 0 0 0 2px var(--surface-2);
+      flex-shrink: 0;
+    }
+    .avatar.redwaan { background: var(--curiosity); box-shadow: 0 0 8px rgba(118, 146, 255, 0.4); }
+    .avatar.tarik { background: var(--imagination); box-shadow: 0 0 8px rgba(157, 102, 255, 0.4); }
+    .avatar.unassigned { background: var(--surface-3); color: var(--text-2); border: 1px dashed var(--text-3); }
+    
+    .card-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; justify-content: space-between; }
     .small-btn { min-height: 34px; padding: 7px 10px; font-size: 0.78rem; }
 
     .category-progress { display: grid; gap: 10px; }
@@ -855,11 +868,16 @@
             <div class="task-meta">
               <span class="badge ${badgeClass(task.status)}">${escapeHtml(task.status)}</span>
               <span class="badge">${escapeHtml(task.priority || "Medium")}</span>
-              ${owner ? `<span class="badge owner">${escapeHtml(owner)}</span>` : `<span class="badge">Unassigned</span>`}
               ${due ? `<span class="badge">${due}</span>` : ""}
               ${tags(task).filter(tag => !["done"].includes(tag)).slice(0,4).map(tag => `<span class="badge ${badgeClass(tag)}">${escapeHtml(tag.replaceAll("-", " "))}</span>`).join("")}
             </div>
             <div class="card-actions">
+              <div class="avatar-wrap" title="${owner ? `Assigned to ${escapeHtml(owner)}` : 'Unassigned'}">
+                ${owner 
+                  ? `<div class="avatar ${owner.toLowerCase()}">${owner.charAt(0)}</div>` 
+                  : `<div class="avatar unassigned">?</div>`
+                }
+              </div>
               <button class="btn small-btn" type="button" onclick="openTaskModal(null, '${task.id}')">Edit</button>
             </div>
           </div>
