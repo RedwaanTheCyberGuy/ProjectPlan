@@ -26,7 +26,7 @@
       --silver: #B4B2A9;
       --bg: #07192f;
       --bg-pattern: url("./Beyond%20Code/pattern/pattern-dark.svg");
-      --surface: rgba(12, 35, 64, 0.88);
+      --surface: rgba(12, 35, 64, 0.6);
       --surface-strong: #0C2340;
       --surface-soft: rgba(255, 255, 255, 0.06);
       --border: rgba(255, 255, 255, 0.12);
@@ -42,7 +42,7 @@
     [data-theme="light"] {
       --bg: #F1EFE8;
       --bg-pattern: url("./Beyond%20Code/pattern/pattern-light.svg");
-      --surface: rgba(255, 255, 255, 0.9);
+      --surface: rgba(255, 255, 255, 0.7);
       --surface-strong: #ffffff;
       --surface-soft: rgba(12, 35, 64, 0.055);
       --border: rgba(12, 35, 64, 0.12);
@@ -134,8 +134,9 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background: var(--surface);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
     }
 
     .hero-panel { padding: clamp(16px, 2.5vw, 24px); overflow: hidden; position: relative; }
@@ -200,7 +201,7 @@
       padding-bottom: 3px;
     }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab, .filter-btn {
+    .tab {
       border: 1px solid var(--border);
       background: var(--surface);
       border-radius: var(--radius);
@@ -211,8 +212,20 @@
       white-space: nowrap;
       transition: all 0.18s ease;
     }
-    .tab:hover, .filter-btn:hover { color: var(--text); border-color: var(--border-strong); }
-    .tab.active, .filter-btn.active { color: var(--midnight); background: var(--terminal); border-color: var(--terminal); }
+    .filter-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-2);
+      border-radius: var(--radius);
+      cursor: pointer;
+      padding: 8px 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+    .tab:hover { color: var(--text); border-color: var(--border-strong); }
+    .filter-btn:hover { color: var(--text); background: var(--surface-soft); border-color: transparent; }
+    .tab.active, .filter-btn.active { color: var(--midnight); background: var(--terminal); border-color: var(--terminal); box-shadow: 0 4px 12px rgba(34, 211, 166, 0.2); }
     .tab-badge { margin-left: 7px; background: var(--coral); color: white; border-radius: 999px; padding: 1px 7px; font-size: 0.75rem; }
 
     .dashboard { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
@@ -228,8 +241,11 @@
       align-items: start;
       margin-bottom: 18px;
     }
-    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
-    .owner-filter { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+    .filters { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; align-items: center; }
+    .owner-filter { display: flex; gap: 10px; align-items: center; justify-content: flex-end; white-space: nowrap; }
+    .owner-filter label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-2); letter-spacing: 0.05em; margin: 0; }
+    .owner-filter select { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .owner-filter select:hover { border-color: var(--border-strong); }
 
     .section-panel { padding: 16px; margin-bottom: 14px; }
     .section-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
