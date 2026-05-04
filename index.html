@@ -280,7 +280,14 @@
     .task-title { margin: 0; font-weight: 900; line-height: 1.25; }
     .task-card.done .task-title { text-decoration: line-through; color: var(--text-2); }
     .task-desc { margin: 7px 0 0; color: var(--text-2); font-size: 0.9rem; }
-    .task-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .task-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    .progress-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-2); background: var(--surface-soft); padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .progress-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--chip-color, var(--silver)); }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -870,18 +877,19 @@
 
     function taskCard(task) {
       const owner = ownerName(task.assigned_to);
-      const due = task.due_date ? new Date(task.due_date + "T00:00:00").toLocaleDateString("en-GB", { day:"numeric", month:"short" }) : "";
-      return `<article class="task-card ${task.completed ? "done" : ""}">
+      const ownerColor = owner === "Redwaan" ? "var(--terminal)" : owner === "Tarik" ? "var(--imagination)" : "transparent";
+      const progress = task.completed ? "Done" : (task.progress_status || "Not Started");
+      const progressColor = progress === "Done" ? "var(--terminal)" : progress === "In Progress" ? "var(--curiosity)" : progress === "Blocked" ? "var(--coral)" : "var(--silver)";
+      
+      return `<article class="task-card ${task.completed ? "done" : ""}" style="border-left: 4px solid ${ownerColor};">
         <div class="task-top">
           <button class="check ${task.completed ? "done" : ""}" type="button" aria-label="${task.completed ? "Mark incomplete" : "Mark complete"}" onclick="toggleComplete('${task.id}')"></button>
           <div class="task-main">
             <h4 class="task-title">${escapeHtml(task.title)}</h4>
             ${task.description ? `<p class="task-desc">${escapeHtml(task.description)}</p>` : ""}
             <div class="task-meta">
+              <span class="progress-chip" style="--chip-color: ${progressColor}">${escapeHtml(progress)}</span>
               <span class="badge ${badgeClass(task.status)}">${escapeHtml(task.status)}</span>
-              <span class="badge">${escapeHtml(task.priority || "Medium")}</span>
-              ${due ? `<span class="badge">${due}</span>` : ""}
-              ${tags(task).filter(tag => !["done"].includes(tag)).slice(0,4).map(tag => `<span class="badge ${badgeClass(tag)}">${escapeHtml(tag.replaceAll("-", " "))}</span>`).join("")}
             </div>
             <div class="card-actions">
               <div class="avatar-wrap" title="${owner ? `Assigned to ${escapeHtml(owner)}` : 'Unassigned'}">

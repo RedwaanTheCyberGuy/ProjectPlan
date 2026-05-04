@@ -18,6 +18,7 @@ create table if not exists public.profiles (
 create table if not exists public.tasks (
   id uuid primary key default gen_random_uuid(),
   source_id text unique,
+  progress_status text default 'Not Started',
   title text not null,
   description text,
   category text not null check (category in (
