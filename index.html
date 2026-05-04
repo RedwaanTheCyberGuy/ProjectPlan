@@ -333,11 +333,12 @@
     .owner-badge { display: inline-flex; align-items: center; gap: 8px; }
     .owner-badge .owner-name { font-size: 0.8rem; font-weight: 700; color: var(--text-2); }
 
-    .card-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; justify-content: space-between; }
+    .card-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .small-btn { min-height: 34px; padding: 7px 10px; font-size: 0.78rem; }
     .status-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
     .move-select {
       min-height: 34px;
+      min-width: 120px;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background: var(--surface-soft);
@@ -346,6 +347,8 @@
       font-size: 0.78rem;
       font-weight: 700;
       cursor: pointer;
+      width: auto;
+      max-width: 100%;
     }
 
     .category-progress { display: grid; gap: 10px; }
@@ -979,7 +982,7 @@
       const progressColor = progress === "Done" ? "var(--terminal)" : progress === "In Progress" ? "var(--curiosity)" : progress === "Blocked" ? "var(--coral)" : "var(--silver)";
       const quickMove = ["To Do", "In Progress", "Done"];
       
-      return `<article class="task-card ${task.completed ? "done" : ""}" style="border-left: 4px solid ${ownerColor};" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)">
+      return `<article class="task-card ${task.completed ? "done" : ""}" data-task-id="${task.id}" style="border-left: 4px solid ${ownerColor};" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)">
         <div class="task-top">
           <button class="check ${task.completed ? "done" : ""}" type="button" aria-label="${task.completed ? "Mark incomplete" : "Mark complete"}" onclick="toggleComplete('${task.id}')"></button>
           <div class="task-main">
@@ -998,7 +1001,7 @@
               </div>
               <div class="status-controls">
                 <select class="move-select" aria-label="Move task status" onchange="moveTask('${task.id}', this.value)">
-                  ${quickMove.map(label => `<option value="${label}" ${progress === label ? "selected" : ""}>Move to ${label}</option>`).join("")}
+                  ${quickMove.map(label => `<option value="${label}" ${progress === label ? "selected" : ""}>${label}</option>`).join("")}
                 </select>
                 <button class="btn small-btn" type="button" onclick="openTaskModal(null, '${task.id}')">Edit</button>
               </div>
