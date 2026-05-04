@@ -335,6 +335,18 @@
 
     .card-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; justify-content: space-between; }
     .small-btn { min-height: 34px; padding: 7px 10px; font-size: 0.78rem; }
+    .status-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .move-select {
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
     .category-progress { display: grid; gap: 10px; }
     .category-row { display: grid; grid-template-columns: minmax(110px, 1fr) 2fr auto; gap: 10px; align-items: center; }
@@ -680,6 +692,8 @@
 
     document.addEventListener("DOMContentLoaded", init);
 
+    function isLocalMode() { return !sb || !state.session; }
+
     let draggedTaskId = null;
     function handleDragStart(e, id) { draggedTaskId = id; setTimeout(() => e.target.classList.add('dragging'), 0); }
     function handleDragEnd(e) { e.target.classList.remove('dragging'); draggedTaskId = null; }
@@ -689,19 +703,48 @@
       e.preventDefault();
       e.currentTarget.classList.remove('drag-over');
       if (!draggedTaskId) return;
-      const task = state.tasks.find(t => t.id === draggedTaskId);
+      await moveTask(draggedTaskId, newStatus);
+    }
+
+    function statusFromProgress(newProgress, isCompleted) {
+      if (isCompleted || newProgress === "Done") return "Done";
+      if (newProgress === "In Progress") return "This Week";
+      return "To Do";
+    }
+
+    function patchTaskState(task, progressStatus) {
+      const completed = progressStatus === "Done";
+      const nowIso = new Date().toISOString();
+      return {
+        ...task,
+        progress_status: progressStatus,
+        status: statusFromProgress(progressStatus, completed),
+        completed,
+        completed_at: completed ? (task.completed_at || nowIso) : null,
+        updated_at: nowIso
+      };
+    }
+
+    async function moveTask(id, newStatus) {
+      const task = state.tasks.find(t => t.id === id);
       if (!task) return;
       const currentStatus = task.completed ? "Done" : (task.progress_status || "Not Started");
       if (currentStatus === newStatus) return;
-
-      const isCompleted = newStatus === "Done";
-      task.progress_status = newStatus;
-      task.completed = isCompleted;
-      render(); // Optimistic update
+      const updatedTask = patchTaskState(task, newStatus);
+      Object.assign(task, updatedTask);
+      render();
       
       if (!isLocalMode()) {
-        const { error } = await supabaseClient.from('tasks').update({ progress_status: newStatus, completed: isCompleted }).eq('id', draggedTaskId);
-        if (error) { console.error("Kanban update failed:", error); fetchTasks(); }
+        const { error } = await sb.from('tasks').update({
+          progress_status: updatedTask.progress_status,
+          status: updatedTask.status,
+          completed: updatedTask.completed,
+          completed_at: updatedTask.completed_at,
+          updated_at: updatedTask.updated_at
+        }).eq('id', id);
+        if (error) { console.error("Move task failed:", error); await loadTasks(); render(); }
+      } else {
+        saveLocal();
       }
     }
 
@@ -934,6 +977,7 @@
       const ownerColor = owner === "Redwaan" ? "var(--terminal)" : owner === "Tarik" ? "var(--imagination)" : "transparent";
       const progress = task.completed ? "Done" : (task.progress_status || "Not Started");
       const progressColor = progress === "Done" ? "var(--terminal)" : progress === "In Progress" ? "var(--curiosity)" : progress === "Blocked" ? "var(--coral)" : "var(--silver)";
+      const quickMove = ["To Do", "In Progress", "Done"];
       
       return `<article class="task-card ${task.completed ? "done" : ""}" style="border-left: 4px solid ${ownerColor};" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)">
         <div class="task-top">
@@ -952,7 +996,12 @@
                   : `<div class="avatar unassigned">?</div> <span class="owner-name">Unassigned</span>`
                 }
               </div>
-              <button class="btn small-btn" type="button" onclick="openTaskModal(null, '${task.id}')">Edit</button>
+              <div class="status-controls">
+                <select class="move-select" aria-label="Move task status" onchange="moveTask('${task.id}', this.value)">
+                  ${quickMove.map(label => `<option value="${label}" ${progress === label ? "selected" : ""}>Move to ${label}</option>`).join("")}
+                </select>
+                <button class="btn small-btn" type="button" onclick="openTaskModal(null, '${task.id}')">Edit</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1099,7 +1148,13 @@
       const task = state.tasks.find(t => t.id === id);
       if (!task) return;
       const completed = !task.completed;
-      const patch = { completed, status: completed ? "Done" : "To Do", completed_at: completed ? new Date().toISOString() : null, updated_at: new Date().toISOString() };
+      const patch = {
+        completed,
+        status: completed ? "Done" : "To Do",
+        progress_status: completed ? "Done" : "Not Started",
+        completed_at: completed ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      };
       if (sb) {
         const { error } = await sb.from("tasks").update(patch).eq("id", id);
         if (error) return alert(error.message);
@@ -1265,6 +1320,7 @@
     window.setFilter = setFilter;
     window.toggleComplete = toggleComplete;
     window.openTaskModal = openTaskModal;
+    window.moveTask = moveTask;
   </script>
 </body>
 </html>
