@@ -257,8 +257,17 @@
     .mini-progress { width: 82px; height: 8px; border-radius: 999px; background: var(--surface-soft); overflow: hidden; }
     .mini-progress span { display: block; height: 100%; width: var(--w); background: var(--terminal); border-radius: inherit; }
     .task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    
+    .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    .kanban-column { background: color-mix(in srgb, var(--surface-soft) 40%, transparent); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; min-height: 300px; display: flex; flex-direction: column; gap: 10px; transition: background 0.2s; }
+    .kanban-column.drag-over { background: var(--surface-soft); border-color: var(--border-strong); }
+    .kanban-header { font-family: "Space Grotesk"; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-2); padding: 4px 6px 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+    .kanban-cards { display: flex; flex-direction: column; gap: 10px; min-height: 50px; }
 
-    .task-card { box-shadow: none; padding: 14px; transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease; }
+    .task-card { box-shadow: none; padding: 14px; transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, opacity 0.18s; }
+    .task-card[draggable="true"] { cursor: grab; }
+    .task-card[draggable="true"]:active { cursor: grabbing; }
+    .task-card.dragging { opacity: 0.4; transform: scale(0.98); }
     .task-card:hover { transform: translateY(-2px); border-color: var(--border-strong); background: color-mix(in srgb, var(--surface) 90%, var(--terminal)); }
     .task-card.done { opacity: 0.68; }
     .task-top { display: flex; align-items: flex-start; gap: 12px; }
@@ -365,8 +374,12 @@
       .brand-sub { white-space: normal; }
       .form-grid { grid-template-columns: 1fr; }
       .category-row { grid-template-columns: 1fr; }
+      .kanban-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .top-actions { width: 100%; justify-content: flex-end; }
       .top-actions .btn:not(.icon-btn) { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .kanban-board { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
@@ -667,6 +680,31 @@
 
     document.addEventListener("DOMContentLoaded", init);
 
+    let draggedTaskId = null;
+    function handleDragStart(e, id) { draggedTaskId = id; setTimeout(() => e.target.classList.add('dragging'), 0); }
+    function handleDragEnd(e) { e.target.classList.remove('dragging'); draggedTaskId = null; }
+    function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+    async function handleDrop(e, newStatus) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (!draggedTaskId) return;
+      const task = state.tasks.find(t => t.id === draggedTaskId);
+      if (!task) return;
+      const currentStatus = task.completed ? "Done" : (task.progress_status || "Not Started");
+      if (currentStatus === newStatus) return;
+
+      const isCompleted = newStatus === "Done";
+      task.progress_status = newStatus;
+      task.completed = isCompleted;
+      render(); // Optimistic update
+      
+      if (!isLocalMode()) {
+        const { error } = await supabaseClient.from('tasks').update({ progress_status: newStatus, completed: isCompleted }).eq('id', draggedTaskId);
+        if (error) { console.error("Kanban update failed:", error); fetchTasks(); }
+      }
+    }
+
     async function init() {
       cacheEls();
       populateSelects();
@@ -853,13 +891,26 @@
     function renderFocus(tasks) {
       const focus = (tasks || state.tasks)
         .filter(t => t.category !== "Parking Lot" && (t.status === "Urgent" || t.status === "This Week" || tags(t).includes("urgent") || tags(t).includes("this-week")))
-        .sort(sortTasks)
-        .slice(0, 8);
+        .sort(sortTasks);
+      
       els.heroTitle.textContent = focus.length ? "What moves Beyond Code forward today?" : "All immediate work is clear.";
       els.heroCopy.textContent = focus.length ? "Work the urgent and this-week tasks first. Everything else can wait until the system is protected, launch-ready, and easy to sell." : "Use the Full Plan to pull the next useful task into this week.";
-      els.content.innerHTML = focus.length
-        ? `<section class="section-panel"><div class="section-head"><div class="section-title"><h3>⚡ Today’s Focus</h3><p>Highest leverage tasks from Urgent and This Week.</p></div></div><div class="task-grid">${focus.map(taskCard).join("")}</div></section>`
-        : emptyState("No immediate focus tasks", "Add a task with Urgent or This Week status when something needs the front of the queue.");
+      
+      if (!focus.length) {
+        els.content.innerHTML = emptyState("No immediate focus tasks", "Add a task with Urgent or This Week status when something needs the front of the queue.");
+        return;
+      }
+      
+      const columns = ["Not Started", "In Progress", "Blocked", "Done"];
+      const kanbanHtml = `<div class="kanban-board">` + columns.map(col => {
+        const colTasks = focus.filter(t => (t.completed ? "Done" : (t.progress_status || "Not Started")) === col);
+        return `<div class="kanban-column" data-status="${col}" ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '${col}')">
+          <div class="kanban-header">${col} <span class="mono">${colTasks.length}</span></div>
+          <div class="kanban-cards">${colTasks.map(t => taskCard(t)).join("")}</div>
+        </div>`;
+      }).join("") + `</div>`;
+      
+      els.content.innerHTML = `<section class="section-panel"><div class="section-head"><div class="section-title"><h3>⚡ Focus Kanban</h3><p>Drag and drop tasks to update progress instantly.</p></div></div>${kanbanHtml}</section>`;
     }
 
     function renderPlan(tasks) {
@@ -884,7 +935,7 @@
       const progress = task.completed ? "Done" : (task.progress_status || "Not Started");
       const progressColor = progress === "Done" ? "var(--terminal)" : progress === "In Progress" ? "var(--curiosity)" : progress === "Blocked" ? "var(--coral)" : "var(--silver)";
       
-      return `<article class="task-card ${task.completed ? "done" : ""}" style="border-left: 4px solid ${ownerColor};">
+      return `<article class="task-card ${task.completed ? "done" : ""}" style="border-left: 4px solid ${ownerColor};" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)">
         <div class="task-top">
           <button class="check ${task.completed ? "done" : ""}" type="button" aria-label="${task.completed ? "Mark incomplete" : "Mark complete"}" onclick="toggleComplete('${task.id}')"></button>
           <div class="task-main">
