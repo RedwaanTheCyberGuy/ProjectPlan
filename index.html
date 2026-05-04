@@ -321,6 +321,9 @@
     .avatar.tarik { background: var(--imagination); box-shadow: 0 0 8px rgba(157, 102, 255, 0.4); }
     .avatar.unassigned { background: var(--surface-3); color: var(--text-2); border: 1px dashed var(--text-3); }
     
+    .owner-badge { display: inline-flex; align-items: center; gap: 8px; }
+    .owner-badge .owner-name { font-size: 0.8rem; font-weight: 700; color: var(--text-2); }
+
     .card-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; justify-content: space-between; }
     .small-btn { min-height: 34px; padding: 7px 10px; font-size: 0.78rem; }
 
@@ -892,10 +895,10 @@
               <span class="badge ${badgeClass(task.status)}">${escapeHtml(task.status)}</span>
             </div>
             <div class="card-actions">
-              <div class="avatar-wrap" title="${owner ? `Assigned to ${escapeHtml(owner)}` : 'Unassigned'}">
+              <div class="owner-badge" title="${owner ? `Assigned to ${escapeHtml(owner)}` : 'Unassigned'}">
                 ${owner 
-                  ? `<div class="avatar ${owner.toLowerCase()}">${owner.charAt(0)}</div>` 
-                  : `<div class="avatar unassigned">?</div>`
+                  ? `<div class="avatar ${owner.toLowerCase()}">${owner.charAt(0)}</div> <span class="owner-name">${escapeHtml(owner)}</span>` 
+                  : `<div class="avatar unassigned">?</div> <span class="owner-name">Unassigned</span>`
                 }
               </div>
               <button class="btn small-btn" type="button" onclick="openTaskModal(null, '${task.id}')">Edit</button>
